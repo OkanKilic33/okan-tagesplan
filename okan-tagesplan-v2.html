@@ -539,14 +539,13 @@ let streak = JSON.parse(localStorage.getItem('streak_v2') || '{}');
 
 // ── INIT ──────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
-  updateDate(); renderTL(); renderTrk(); renderStreak(); updateProg();
-  loadPrayerTimes();
+  updateDate(); renderTL(); renderTrk(); renderStreak(); updateProg(); loadPrayerTimes();
 });
 
 // ── PRAYER TIMES — AlAdhan API (Moschee der Zukunft, München Moosfeld) ────
 // Koordinaten: 48.1127° N, 11.6394° E  |  Methode 3 = Muslim World League
 async function loadPrayerTimes() {
-  const CACHE_KEY = 'prayer_cache_v2';
+  const CACHE_KEY = 'prayer_cache_v3';
   const today = new Date().toISOString().slice(0,10);
 
   // Use cache if same day
@@ -560,7 +559,7 @@ async function loadPrayerTimes() {
 
   try {
     const d = new Date();
-    const url = `https://api.aladhan.com/v1/timings/${Math.floor(d/1000)}?latitude=48.1127&longitude=11.6394&method=3&school=0`;
+    const url = `https://api.aladhan.com/v1/timings/${Math.floor(d/1000)}?latitude=48.1127&longitude=11.6394&method=2&tune=8,0,2,0,0,1,0,0,0`;
     const res = await fetch(url);
     const json = await res.json();
     if (json.code === 200) {
@@ -608,18 +607,37 @@ function applyPrayerTimes(t) {
   }
 
   // Also update salah blocks in timeline dynamically
-  const map = { 'Fajr': t.Fajr, 'Dhuhr': t.Dhuhr, 'Asr': t.Asr, 'Maghrib': t.Maghrib, 'Isha': t.Isha };
-  // update blocks array times for salah
+  // Helper: subtract N minutes from HH:MM string
+  function subMin(time, n) {
+    const [h,m] = time.split(':').map(Number);
+    const total = h*60+m-n;
+    return String(Math.floor(total/60)%24).padStart(2,'0')+':'+String(total%60).padStart(2,'0');
+  }
+
+  // Update salah blocks AND adjacent blocks dynamically
   blocks.forEach(b => {
     if (b.type === 'salah') {
-      if (b.title.includes('Fajr'))    b.time = t.Fajr.padStart(5,'0').slice(0,5);
-      if (b.title.includes('Dhuhr'))   b.time = t.Dhuhr.padStart(5,'0').slice(0,5);
-      if (b.title.includes('Asr'))     b.time = t.Asr.padStart(5,'0').slice(0,5);
-      if (b.title.includes('Maghrib')) b.time = t.Maghrib.padStart(5,'0').slice(0,5);
-      if (b.title.includes('Isha'))    b.time = t.Isha.padStart(5,'0').slice(0,5);
+      if (b.title.includes('Fajr')) {
+        b.time = t.Fajr.slice(0,5);
+        b.desc = b.desc.replace(/\d{2}:\d{2} gestellt/, subMin(t.Fajr,5)+' gestellt');
+      }
+      if (b.title.includes('Dhuhr'))   b.time = t.Dhuhr.slice(0,5);
+      if (b.title.includes('Asr'))     b.time = t.Asr.slice(0,5);
+      if (b.title.includes('Maghrib')) b.time = t.Maghrib.slice(0,5);
+      if (b.title.includes('Isha')) {
+        b.time = t.Isha.slice(0,5);
+      }
+    }
+    // Update sleep block wecker time
+    if (b.title.includes('Schlafen gehen')) {
+      b.desc = b.desc.replace(/Wecker auf \d{2}:\d{2}/, 'Wecker auf ' + subMin(t.Fajr,5));
+    }
+    // Update Isha sleep prep block
+    if (b.title.includes('Schlaf-Vorbereitung')) {
+      b.time = subMin(t.Isha, 20);
     }
   });
-  renderTL(); // re-render with updated times
+  renderTL(); // re-render with live times
 }
 
 function updateDate() {
