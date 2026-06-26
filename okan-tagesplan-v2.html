@@ -239,13 +239,14 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
   <div class="prog-bar"><div class="prog-fill" id="pFill" style="width:0%"></div></div>
 </div>
 
-<div class="prayer-bar">
-  <div class="pp"><div class="pp-name">Fajr</div><div class="pp-time">03:21</div></div>
-  <div class="pp"><div class="pp-name">Shuruk</div><div class="pp-time">05:09</div></div>
-  <div class="pp"><div class="pp-name">Dhuhr</div><div class="pp-time">13:20</div></div>
-  <div class="pp"><div class="pp-name">Asr</div><div class="pp-time">17:35</div></div>
-  <div class="pp"><div class="pp-name">Maghrib</div><div class="pp-time">21:24</div></div>
-  <div class="pp"><div class="pp-name">Isha</div><div class="pp-time">22:54</div></div>
+<div class="prayer-bar" id="prayerBar">
+  <div class="pp"><div class="pp-name">Fajr</div><div class="pp-time" id="pt-fajr">…</div></div>
+  <div class="pp"><div class="pp-name">Shuruk</div><div class="pp-time" id="pt-shuruk">…</div></div>
+  <div class="pp"><div class="pp-name">Dhuhr</div><div class="pp-time" id="pt-dhuhr">…</div></div>
+  <div class="pp"><div class="pp-name">Asr</div><div class="pp-time" id="pt-asr">…</div></div>
+  <div class="pp"><div class="pp-name">Maghrib</div><div class="pp-time" id="pt-maghrib">…</div></div>
+  <div class="pp"><div class="pp-name">Isha</div><div class="pp-time" id="pt-isha">…</div></div>
+  <div class="pp" style="min-width:90px"><div class="pp-name" style="font-size:7px">Moschee d. Z.</div><div class="pp-time" id="pt-src" style="font-size:9px;color:var(--dim)">lädt…</div></div>
 </div>
 
 <div class="tabs">
@@ -539,7 +540,87 @@ let streak = JSON.parse(localStorage.getItem('streak_v2') || '{}');
 // ── INIT ──────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
   updateDate(); renderTL(); renderTrk(); renderStreak(); updateProg();
+  loadPrayerTimes();
 });
+
+// ── PRAYER TIMES — AlAdhan API (Moschee der Zukunft, München Moosfeld) ────
+// Koordinaten: 48.1127° N, 11.6394° E  |  Methode 3 = Muslim World League
+async function loadPrayerTimes() {
+  const CACHE_KEY = 'prayer_cache_v2';
+  const today = new Date().toISOString().slice(0,10);
+
+  // Use cache if same day
+  try {
+    const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}');
+    if (cached.date === today && cached.times) {
+      applyPrayerTimes(cached.times);
+      return;
+    }
+  } catch(e) {}
+
+  try {
+    const d = new Date();
+    const url = `https://api.aladhan.com/v1/timings/${Math.floor(d/1000)}?latitude=48.1127&longitude=11.6394&method=3&school=0`;
+    const res = await fetch(url);
+    const json = await res.json();
+    if (json.code === 200) {
+      const t = json.data.timings;
+      const times = {
+        Fajr: t.Fajr, Sunrise: t.Sunrise, Dhuhr: t.Dhuhr,
+        Asr: t.Asr, Maghrib: t.Maghrib, Isha: t.Isha
+      };
+      localStorage.setItem(CACHE_KEY, JSON.stringify({ date: today, times }));
+      applyPrayerTimes(times);
+    }
+  } catch(e) {
+    // Fallback to hardcoded summer times
+    applyPrayerTimes({ Fajr:'03:21', Sunrise:'05:09', Dhuhr:'13:20', Asr:'17:35', Maghrib:'21:24', Isha:'22:54' });
+    document.getElementById('pt-src').textContent = 'offline';
+  }
+}
+
+function applyPrayerTimes(t) {
+  document.getElementById('pt-fajr').textContent    = t.Fajr;
+  document.getElementById('pt-shuruk').textContent  = t.Sunrise;
+  document.getElementById('pt-dhuhr').textContent   = t.Dhuhr;
+  document.getElementById('pt-asr').textContent     = t.Asr;
+  document.getElementById('pt-maghrib').textContent = t.Maghrib;
+  document.getElementById('pt-isha').textContent    = t.Isha;
+  document.getElementById('pt-src').textContent     = '✓ live';
+
+  // Highlight current prayer
+  const now = new Date();
+  const nowMin = now.getHours()*60 + now.getMinutes();
+  const prayers = [
+    { id:'pt-fajr',    time: t.Fajr },
+    { id:'pt-shuruk',  time: t.Sunrise },
+    { id:'pt-dhuhr',   time: t.Dhuhr },
+    { id:'pt-asr',     time: t.Asr },
+    { id:'pt-maghrib', time: t.Maghrib },
+    { id:'pt-isha',    time: t.Isha },
+  ];
+  const toMin = s => { const [h,m] = s.split(':').map(Number); return h*60+m; };
+  let lastPassed = null;
+  prayers.forEach(p => { if (toMin(p.time) <= nowMin) lastPassed = p.id; });
+  if (lastPassed) {
+    const el = document.getElementById(lastPassed)?.closest('.pp');
+    if (el) el.classList.add('now');
+  }
+
+  // Also update salah blocks in timeline dynamically
+  const map = { 'Fajr': t.Fajr, 'Dhuhr': t.Dhuhr, 'Asr': t.Asr, 'Maghrib': t.Maghrib, 'Isha': t.Isha };
+  // update blocks array times for salah
+  blocks.forEach(b => {
+    if (b.type === 'salah') {
+      if (b.title.includes('Fajr'))    b.time = t.Fajr.padStart(5,'0').slice(0,5);
+      if (b.title.includes('Dhuhr'))   b.time = t.Dhuhr.padStart(5,'0').slice(0,5);
+      if (b.title.includes('Asr'))     b.time = t.Asr.padStart(5,'0').slice(0,5);
+      if (b.title.includes('Maghrib')) b.time = t.Maghrib.padStart(5,'0').slice(0,5);
+      if (b.title.includes('Isha'))    b.time = t.Isha.padStart(5,'0').slice(0,5);
+    }
+  });
+  renderTL(); // re-render with updated times
+}
 
 function updateDate() {
   const d = new Date();
