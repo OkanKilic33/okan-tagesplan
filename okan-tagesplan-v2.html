@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Okans Plan</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Okans Plan">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="manifest" href="manifest.json">
+<style>
+  /* PWA fullscreen fix */
+  html, body { height: 100%; overflow-x: hidden; }
+  body { padding-top: env(safe-area-inset-top); padding-bottom: calc(90px + env(safe-area-inset-bottom)); }
+  .bot-nav { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+</style>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg: #0a0a0a;
+  --s1: #111111;
+  --s2: #1a1a1a;
+  --s3: #222222;
+  --border: #2c2c2c;
+  --gold: #d4a843;
+  --gold-d: #7a5f20;
+  --gold-bg: #1a1400;
+  --green: #4ade80;
+  --green-d: #166534;
+  --green-bg: #0a1f10;
+  --blue: #60a5fa;
+  --blue-bg: #0a1628;
+  --purple: #a78bfa;
+  --purple-bg: #130d28;
+  --orange: #fb923c;
+  --orange-bg: #1a0e00;
+  --red: #f87171;
+  --red-bg: #1a0808;
+  --text: #f0ece4;
+  --dim: #888;
+  --muted: #444;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; padding-bottom: 90px; }
+
+/* ── HEADER ── */
+.hdr {
+  background: var(--s1);
+  border-bottom: 1px solid var(--gold-d);
+  padding: 18px 16px 14px;
+  position: sticky; top: 0; z-index: 200;
+}
+.hdr-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.hdr h1 { font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); }
+.hdr .date-pill { font-size: 10px; color: var(--dim); background: var(--s2); padding: 4px 10px; border-radius: 20px; }
+.bismillah { text-align: center; font-size: 17px; color: var(--gold); opacity: 0.75; margin-bottom: 10px; }
+.prog-row { display: flex; justify-content: space-between; font-size: 10px; color: var(--dim); margin-bottom: 5px; letter-spacing: 0.06em; }
+.prog-bar { height: 2px; background: var(--border); border-radius: 2px; }
+.prog-fill { height: 100%; background: linear-gradient(90deg, var(--gold-d), var(--gold)); border-radius: 2px; transition: width 0.4s; }
+
+/* ── PRAYER BAR ── */
+.prayer-bar {
+  display: flex; gap: 6px; padding: 10px 16px;
+  background: var(--s2); border-bottom: 1px solid var(--border);
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+}
+.pp { display: flex; flex-direction: column; align-items: center; flex-shrink: 0;
+  background: var(--s1); border: 1px solid var(--border); border-radius: 8px; padding: 7px 11px; min-width: 64px; }
+.pp.now { border-color: var(--gold); background: var(--gold-bg); }
+.pp-name { font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); margin-bottom: 2px; }
+.pp-time { font-size: 12px; font-weight: 600; color: var(--gold); font-variant-numeric: tabular-nums; }
+
+/* ── TABS ── */
+.tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--s1); }
+.tab-btn { flex: 1; padding: 11px 4px; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--dim); background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
+.tab-btn.on { color: var(--gold); border-bottom-color: var(--gold); }
+
+/* ── VIEWS ── */
+.view { display: none; padding: 14px 14px; }
+.view.on { display: block; }
+
+/* ── KRITIK BANNER ── */
+.kritik-banner {
+  background: #1a0a00; border: 1px solid #7a3500; border-radius: 10px; padding: 14px; margin-bottom: 16px;
+}
+.kritik-banner h3 { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--orange); margin-bottom: 10px; }
+.kritik-item { display: flex; gap: 10px; margin-bottom: 8px; align-items: flex-start; }
+.k-badge { font-size: 9px; background: var(--orange-bg); color: var(--orange); border: 1px solid #7a3500;
+  padding: 2px 7px; border-radius: 3px; white-space: nowrap; flex-shrink: 0; margin-top: 1px; }
+.kritik-item p { font-size: 11px; color: var(--dim); line-height: 1.5; }
+.kritik-item strong { color: var(--text); }
+
+/* ── TIMELINE ── */
+.tl { position: relative; }
+.tl::before { content: ''; position: absolute; left: 46px; top: 0; bottom: 0; width: 1px; background: var(--border); }
+
+.blk { display: flex; gap: 12px; margin-bottom: 3px; }
+.blk-time { width: 46px; font-size: 9px; font-variant-numeric: tabular-nums; color: var(--muted); padding-top: 15px; flex-shrink: 0; text-align: right; }
+.blk-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 16px; flex-shrink: 0; position: relative; z-index: 1; }
+.blk-card { flex: 1; border-radius: 9px; padding: 11px 13px; margin-bottom: 3px; border: 1px solid transparent; position: relative; }
+.blk-card.done { opacity: 0.4; }
+
+/* types */
+.t-salah .blk-dot { background: var(--gold); box-shadow: 0 0 6px var(--gold-d); }
+.t-salah .blk-card { background: var(--gold-bg); border-color: #3a2800; }
+.t-salah .blk-title { color: var(--gold); }
+
+.t-sleep .blk-dot { background: #4466aa; }
+.t-sleep .blk-card { background: #080c14; border-color: #151f35; }
+.t-sleep .blk-title { color: #6688cc; }
+
+.t-morning .blk-dot { background: var(--orange); }
+.t-morning .blk-card { background: var(--orange-bg); border-color: #3a2000; }
+.t-morning .blk-title { color: var(--orange); }
+
+.t-thesis .blk-dot { background: var(--blue); }
+.t-thesis .blk-card { background: var(--blue-bg); border-color: #152035; }
+.t-thesis .blk-title { color: var(--blue); }
+
+.t-gym .blk-dot { background: var(--green); }
+.t-gym .blk-card { background: var(--green-bg); border-color: #1a3520; }
+.t-gym .blk-title { color: var(--green); }
+
+.t-arabic .blk-dot { background: var(--purple); }
+.t-arabic .blk-card { background: var(--purple-bg); border-color: #252040; }
+.t-arabic .blk-title { color: var(--purple); }
+
+.t-meal .blk-dot { background: #d4956a; }
+.t-meal .blk-card { background: #1a0f08; border-color: #33201a; }
+.t-meal .blk-title { color: #d4956a; }
+
+.t-reward .blk-dot { background: var(--red); }
+.t-reward .blk-card { background: var(--red-bg); border-color: #3a1515; }
+.t-reward .blk-title { color: var(--red); }
+
+.t-admin .blk-dot { background: var(--muted); }
+.t-admin .blk-card { background: var(--s2); border-color: var(--border); }
+.t-admin .blk-title { color: var(--text); }
+
+.blk-hdr { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3px; }
+.blk-title { font-size: 12px; font-weight: 600; }
+.blk-dur { font-size: 9px; color: var(--muted); flex-shrink: 0; margin-left: 8px; font-variant-numeric: tabular-nums; }
+.blk-desc { font-size: 11px; color: var(--dim); line-height: 1.5; margin-top: 3px; }
+
+.sci-tag { display: inline-block; font-size: 8px; background: var(--blue-bg); color: var(--blue);
+  border: 1px solid #1a3045; padding: 1px 6px; border-radius: 3px; letter-spacing: 0.06em; margin-top: 6px; margin-right: 4px; }
+.islam-tag { display: inline-block; font-size: 8px; background: var(--gold-bg); color: var(--gold);
+  border: 1px solid var(--gold-d); padding: 1px 6px; border-radius: 3px; letter-spacing: 0.06em; margin-top: 6px; margin-right: 4px; }
+
+.done-btn { margin-top: 8px; padding: 5px 11px; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
+  background: none; border: 1px solid var(--border); color: var(--dim); border-radius: 4px; cursor: pointer; transition: all 0.2s; }
+.done-btn:hover, .done-btn.on { border-color: var(--green); color: var(--green); background: var(--green-bg); }
+
+/* ── SYSTEM CARDS ── */
+.sys-card { background: var(--s1); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+.sys-card h3 { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold);
+  margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.sys-card p, .sys-card li { font-size: 11px; color: var(--dim); line-height: 1.6; margin-bottom: 5px; }
+.sys-card ul { padding-left: 14px; }
+.sys-highlight { background: var(--gold-bg); border-left: 2px solid var(--gold); padding: 8px 12px;
+  border-radius: 0 5px 5px 0; font-size: 11px; color: var(--text); margin-top: 8px; line-height: 1.5; }
+.warning-box { background: #1a0808; border-left: 2px solid var(--red); padding: 8px 12px;
+  border-radius: 0 5px 5px 0; font-size: 11px; color: #ff9999; margin-top: 8px; line-height: 1.5; }
+.sci-badge { display: inline-block; font-size: 8px; background: var(--blue-bg); color: var(--blue);
+  border: 1px solid #1a3045; padding: 2px 7px; border-radius: 3px; letter-spacing: 0.08em; margin-bottom: 7px; }
+
+/* ── TRACKER ── */
+.trk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+.trk-item { background: var(--s1); border: 1px solid var(--border); border-radius: 8px; padding: 13px 10px;
+  cursor: pointer; text-align: center; transition: all 0.2s; }
+.trk-item.on { border-color: var(--green); background: var(--green-bg); }
+.trk-icon { font-size: 20px; margin-bottom: 5px; }
+.trk-label { font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); }
+.trk-item.on .trk-label { color: var(--green); }
+
+.score-box { text-align: center; margin: 20px 0 16px; }
+.score-num { font-size: 40px; font-weight: 700; color: var(--gold); font-variant-numeric: tabular-nums; }
+.score-lbl { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); margin-top: 2px; }
+
+.streak-box { background: var(--s1); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+.streak-box h3 { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); margin-bottom: 10px; }
+.streak-row { display: flex; gap: 5px; }
+.s-dot { width: 36px; height: 36px; border-radius: 6px; background: var(--border);
+  display: flex; align-items: center; justify-content: center; font-size: 9px; color: var(--muted); flex-direction: column; gap: 1px; }
+.s-dot.good { background: var(--green-bg); border: 1px solid var(--green-d); color: var(--green); }
+.s-dot.today { border: 1px solid var(--gold); }
+.s-dot .s-day { font-size: 8px; }
+.s-dot .s-check { font-size: 11px; }
+
+/* ── RULES ── */
+.rule { background: var(--s1); border: 1px solid var(--border); border-radius: 9px; padding: 14px; margin-bottom: 10px; }
+.rule-num { font-size: 30px; font-weight: 700; color: var(--muted); line-height: 1; margin-bottom: 5px; }
+.rule-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 5px; }
+.rule-desc { font-size: 11px; color: var(--dim); line-height: 1.6; }
+.rule-action { margin-top: 8px; font-size: 11px; color: var(--gold); }
+
+/* ── WAKEUP VIEW ── */
+.wakeup-card { background: var(--s1); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+.wakeup-card h3 { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 10px;
+  padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.wakeup-card.gold h3 { color: var(--gold); }
+.wakeup-card.blue h3 { color: var(--blue); }
+.wakeup-card.green h3 { color: var(--green); }
+.wakeup-card.red h3 { color: var(--red); }
+.wakeup-card p, .wakeup-card li { font-size: 11px; color: var(--dim); line-height: 1.6; margin-bottom: 5px; }
+.wakeup-card ul { padding-left: 14px; }
+.step-row { display: flex; gap: 10px; margin-bottom: 8px; }
+.step-num { width: 22px; height: 22px; border-radius: 50%; background: var(--gold-d); color: var(--gold);
+  font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.step-text { font-size: 11px; color: var(--dim); line-height: 1.5; padding-top: 2px; }
+.step-text strong { color: var(--text); }
+
+/* ── NAV ── */
+.bot-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--s1); border-top: 1px solid var(--border); display: flex; padding: 8px 0 16px; }
+.nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  background: none; border: none; cursor: pointer; padding: 5px; }
+.nav-icon { font-size: 17px; }
+.nav-label { font-size: 8px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.nav-btn.on .nav-label { color: var(--gold); }
+
+/* scrollbar */
+.prayer-bar::-webkit-scrollbar { display: none; }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-row">
+    <h1>Okans Plan v2</h1>
+    <div class="date-pill" id="dateD"></div>
+  </div>
+  <div class="bismillah">بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ</div>
+  <div class="prog-row"><span>Tagesfortschritt</span><span id="pPct">0%</span></div>
+  <div class="prog-bar"><div class="prog-fill" id="pFill" style="width:0%"></div></div>
+</div>
+
+<div class="prayer-bar">
+  <div class="pp"><div class="pp-name">Fajr</div><div class="pp-time">03:21</div></div>
+  <div class="pp"><div class="pp-name">Shuruk</div><div class="pp-time">05:09</div></div>
+  <div class="pp"><div class="pp-name">Dhuhr</div><div class="pp-time">13:20</div></div>
+  <div class="pp"><div class="pp-name">Asr</div><div class="pp-time">17:35</div></div>
+  <div class="pp"><div class="pp-name">Maghrib</div><div class="pp-time">21:24</div></div>
+  <div class="pp"><div class="pp-name">Isha</div><div class="pp-time">22:54</div></div>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn on" onclick="sw('tl',this)">📅 Plan</button>
+  <button class="tab-btn" onclick="sw('wu',this)">⏰ Aufstehen</button>
+  <button class="tab-btn" onclick="sw('sys',this)">🧠 System</button>
+  <button class="tab-btn" onclick="sw('trk',this)">✅ Tracker</button>
+  <button class="tab-btn" onclick="sw('rl',this)">📋 Regeln</button>
+</div>
+
+<!-- ═══ TIMELINE ═══ -->
+<div class="view on" id="tl">
+  <!-- KRITIK BANNER -->
+  <div class="kritik-banner">
+    <h3>⚠️ Kritik am alten Plan — eingearbeitete Korrekturen</h3>
+    <div class="kritik-item">
+      <div class="k-badge">SCHLAF</div>
+      <p><strong>Problem:</strong> Isha 22:54 → Schlafen 00:00+ → Fajr 03:21 = nur 3h Schlaf. Unlösbar. <strong>Fix:</strong> Fajr beten → Qailula bis 08–09h (Sunnah-konform, wissenschaftlich belegt).</p>
+    </div>
+    <div class="kritik-item">
+      <div class="k-badge">GYM</div>
+      <p><strong>Problem:</strong> Gym morgens = "Tag mental vorbei danach". <strong>Fix:</strong> Gym als Belohnung NACH Thesis-Arbeit, nachmittags nach Dhuhr.</p>
+    </div>
+    <div class="kritik-item">
+      <div class="k-badge">HANDY</div>
+      <p><strong>Problem:</strong> Adhkar auf App = Handy direkt nach Fajr = Ablenkung/Trigger. <strong>Fix:</strong> Adhkar ausdrucken (laminierte Karte). Handy bleibt weg.</p>
+    </div>
+    <div class="kritik-item">
+      <div class="k-badge">ZU VOLL</div>
+      <p><strong>Problem:</strong> Alter Plan hatte zu viele Pflicht-Blöcke. <strong>Fix:</strong> <strong>3 Kern-Aufgaben pro Tag</strong> — mehr ist Bonus, nicht Pflicht.</p>
+    </div>
+    <div class="kritik-item">
+      <div class="k-badge">POMODORO</div>
+      <p><strong>Problem:</strong> Standard 25min oft zu lang bei ADHS. <strong>Fix:</strong> 15/5 Variante mit klarem Start-Ritual (Forschung: Barkley 2015).</p>
+    </div>
+  </div>
+
+  <div class="tl" id="tlBlocks"></div>
+</div>
+
+<!-- ═══ AUFSTEHEN ═══ -->
+<div class="view" id="wu">
+
+  <div class="wakeup-card red">
+    <h3>🚨 Das Snooze-Problem — Wissenschaft</h3>
+    <div class="sci-badge">SCHLAFFORSCHUNG</div>
+    <p>Snooze-Schlaf ist nicht erholsam — er fragmentiert den Schlaf und <strong>verstärkt die Schlafträgheit</strong> (Sleep Inertia). Jedes Snooze trainiert dein Gehirn: "Der erste Alarm ist nicht ernst gemeint."</p>
+    <div class="warning-box">Das ADHS-Gehirn hat eine natürliche Tendenz zu Delayed Sleep Phase — du bist nicht "faul", dein Schlafrhythmus ist biologisch nach hinten verschoben.</div>
+  </div>
+
+  <div class="wakeup-card gold">
+    <h3>⚡ Die 5-Schritte Aufsteh-Sequenz</h3>
+    <div class="sci-badge">ADHD RESEARCH — BARKLEY / ROBBINS</div>
+    <div class="step-row"><div class="step-num">1</div><div class="step-text"><strong>Wecker auf die andere Seite des Zimmers.</strong> Nicht neben dem Bett. Du musst aufstehen um ihn auszumachen. Physische Aktivierung = Sympathisches Nervensystem springt an.</div></div>
+    <div class="step-row"><div class="step-num">2</div><div class="step-text"><strong>5-4-3-2-1-LOS.</strong> Wenn Wecker klingelt: innerlich zählen 5-4-3-2-1 und aufstehen. Kein Denken dazwischen. Mel Robbins Methode — funktioniert bei ADHS weil sie den Grübel-Loop unterbricht.</div></div>
+    <div class="step-row"><div class="step-num">3</div><div class="step-text"><strong>Sofort Licht an + Wasser trinken.</strong> 300–500ml direkt nach Aufstehen verbessert Fokus nachweislich um ~12%. Vorabend: Glas Wasser neben Wecker stellen.</div></div>
+    <div class="step-row"><div class="step-num">4</div><div class="step-text"><strong>Sofort-Belohnung vorbereiten.</strong> Was freut dich morgens? Kaffee, ein Podcast, eine Playlist? Das darfst du NUR bekommen wenn du aufgestanden bist. Habit Coupling.</div></div>
+    <div class="step-row"><div class="step-num">5</div><div class="step-text"><strong>Handy bleibt weg.</strong> Erste 30–60 min kein Handy. Adhkar auf ausgedruckter Karte. Kein Social Media, kein Instagram, kein Twitter.</div></div>
+  </div>
+
+  <div class="wakeup-card blue">
+    <h3>📱 Wecker-Setup ohne Handy-Falle</h3>
+    <p>Das Kernproblem: Handy = Wecker = Ablenkung. Lösung:</p>
+    <ul>
+      <li>🛒 <strong>Separater Wecker kaufen</strong> (~10–20€ bei Amazon/DM) — dann kann das Handy nachts im anderen Zimmer bleiben</li>
+      <li>💡 <strong>Sunrise Alarm Clock</strong> (Lichtwecker) — Licht steigt 30 min vor Alarm an, macht das Aufwachen sanfter (Circadianer Rhythmus)</li>
+      <li>📳 Wenn Handy als Wecker: <strong>Flugmodus bis nach Fajr</strong> — kein WLAN, keine Benachrichtigungen</li>
+    </ul>
+    <div class="sys-highlight">Günstigster Lichtwecker: Philips SmartSleep HF3500 (~35€). Lohnt sich mehr als Monate verpasster Morgende.</div>
+  </div>
+
+  <div class="wakeup-card green">
+    <h3>🕌 Fajr → Qailula — Der islamische Schlaf-Hack</h3>
+    <div class="sci-badge">SUNNAH + SCHLAFFORSCHUNG</div>
+    <p>Im Sommer ist Fajr um 03:21. Du kannst nicht um 23:00 schlafen gehen und gesund funktionieren. Die Lösung:</p>
+    <div class="step-row"><div class="step-num">1</div><div class="step-text">Schlafen 23:00–03:15 (~4h Kernsschlaf)</div></div>
+    <div class="step-row"><div class="step-num">2</div><div class="step-text">Fajr beten (Adhkar aus Karte)</div></div>
+    <div class="step-row"><div class="step-num">3</div><div class="step-text">Qailula: 04:00–08:30 schlafen (~4–4.5h)</div></div>
+    <div class="step-row"><div class="step-num">4</div><div class="step-text">08:30 aufstehen — ausgeruht, ~8h Gesamtschlaf</div></div>
+    <div class="sys-highlight">Qailula ist Sunnah des Propheten ﷺ und wissenschaftlich belegt als effektiver Schlaf-Split. Du bist kein Versager wenn du nach Fajr schläfst.</div>
+  </div>
+
+  <div class="wakeup-card gold">
+    <h3>🎯 Morgen-Sequenz (nach Aufstehen)</h3>
+    <p>Kein Denken nötig — einfach Schritt für Schritt ausführen:</p>
+    <div class="step-row"><div class="step-num">1</div><div class="step-text">Wasser trinken (Glas stand bereit)</div></div>
+    <div class="step-row"><div class="step-num">2</div><div class="step-text">Kaffee kochen (Belohnung)</div></div>
+    <div class="step-row"><div class="step-num">3</div><div class="step-text">Fenster auf, 2 min draußen stehen oder Tageslicht</div></div>
+    <div class="step-row"><div class="step-num">4</div><div class="step-text">Zettel lesen: Was sind meine 3 Aufgaben heute?</div></div>
+    <div class="step-row"><div class="step-num">5</div><div class="step-text">Timer auf 15 min stellen → Thesis öffnen → starten</div></div>
+    <p style="margin-top:10px; font-size:11px; color:var(--red);">⚠️ Handy erst nach Block 1 Thesis — nicht vorher.</p>
+  </div>
+</div>
+
+<!-- ═══ SYSTEM ═══ -->
+<div class="view" id="sys">
+
+  <div class="sys-card">
+    <h3>🧠 Was bei ADHS WIRKLICH funktioniert</h3>
+    <div class="sci-badge">META-ANALYSE — BARKLEY 2015</div>
+    <p>ADHS ist kein Wissens-Problem sondern ein <strong>Performance-Problem</strong>. Du weißt was zu tun ist — du kannst es aber nicht abrufen wenn nötig. Deshalb:</p>
+    <ul>
+      <li>To-Do-Listen allein <strong>funktionieren nicht</strong> bei ADHS</li>
+      <li>Externe Struktur > interne Willenskraft</li>
+      <li>Kontext-spezifische Erinnerungen (am Ort der Aufgabe)</li>
+      <li>Sofort-Belohnungen > zukünftige Ziele</li>
+    </ul>
+    <div class="sys-highlight">Was funktioniert: Umgebungs-Design, Accountability, kurze Zeitfenster, sofortige Konsequenzen.</div>
+  </div>
+
+  <div class="sys-card">
+    <h3>⏱️ ADHS-Pomodoro (15/5 Variante)</h3>
+    <div class="sci-badge">KOGNTIONSWISSENSCHAFT</div>
+    <p>Standard 25min ist oft zu lang. Starte mit:</p>
+    <ul>
+      <li>🔴 <strong>15 min</strong> arbeiten — Timer stellen, Handy weg</li>
+      <li>🟢 <strong>5 min</strong> Pause (aufstehen, strecken)</li>
+      <li>Nach 3 Runden → <strong>20 min große Pause</strong></li>
+    </ul>
+    <div class="sys-highlight">Start-Ritual: Immer das gleiche. Kaffee kochen, Timer stellen, 1 Tab öffnen. Das Ritual ersetzt Motivation.</div>
+    <div class="warning-box">❌ NICHT funktioniert bei ADHS: "Ich schreibe heute die ganze Thesis." ✅ Stattdessen: "Ich schreibe 15 Minuten lang."</div>
+  </div>
+
+  <div class="sys-card">
+    <h3>🏋️ Sport — aber WANN?</h3>
+    <div class="sci-badge">NEUROLOGIE — RATEY 2008</div>
+    <p>Sport erhöht Dopamin und Noradrenalin für <strong>2–4 Stunden danach</strong>. Das bedeutet:</p>
+    <div class="sys-highlight">✅ Gym VOR Deep Work = Besserer Fokus danach<br>❌ Gym als erstes morgens = "Tag ist vorbei im Kopf"<br><br>Lösung für dich: Thesis zuerst (09–12h) → Gym danach (13h) → Gym-Dopamin hilft beim Nachmittagsblock.</div>
+    <p style="margin-top:8px;">Kein Gym-Tag: Minimum 20 min zügig gehen draußen — aktiviert denselben Mechanismus.</p>
+  </div>
+
+  <div class="sys-card">
+    <h3>👥 Body Doubling</h3>
+    <div class="sci-badge">ADHS-FORSCHUNG</div>
+    <p>Du arbeitest besser wenn andere Menschen anwesend sind. Nutze das aktiv:</p>
+    <ul>
+      <li>📚 Uni-Bibliothek für Thesis-Blöcke</li>
+      <li>☕ Café mit Laptop (1 Aufgabe, kein Wandern)</li>
+      <li>💻 YouTube: "StudyWithMe" live streams</li>
+      <li>📲 "Ich bin am Arbeiten" Text an Bruder senden = Accountability</li>
+    </ul>
+  </div>
+
+  <div class="sys-card">
+    <h3>📵 Handy-Protokoll (realistisch)</h3>
+    <div class="sci-badge">IMPULSKONTROLLE</div>
+    <p>Du hast bereits NextDNS + AppLock. Das reicht aber nicht allein:</p>
+    <ul>
+      <li>Handy in <strong>anderem Zimmer</strong> während Arbeit</li>
+      <li>Adhkar auf <strong>laminierter Karte</strong> drucken</li>
+      <li>Flugmodus 23:00–08:30 (Fajr über separaten Wecker)</li>
+    </ul>
+    <div class="warning-box">Das Handy ist der größte Trigger. Nicht "ich schau kurz" — es gibt kein kurzes Schauen bei ADHS.</div>
+  </div>
+
+  <div class="sys-card">
+    <h3>🍽️ Ernährung & Fokus</h3>
+    <div class="sci-badge">ERNÄHRUNGSFORSCHUNG 2025</div>
+    <p>Blutzucker-Schwankungen verstärken ADHS-Symptome:</p>
+    <ul>
+      <li>Kein Frühstück auf nüchternem Magen mit Zucker</li>
+      <li>Protein morgens = stabilerer Fokus (Eier, Skyr, Shake)</li>
+      <li>Regelmäßige Mahlzeiten (3x täglich, keine 6h Pausen)</li>
+      <li>Dein Retatrutide unterdrückt Hunger — trotzdem essen</li>
+    </ul>
+  </div>
+
+  <div class="sys-card">
+    <h3>📓 "3 Dinge" Methode</h3>
+    <div class="sci-badge">EXEKUTIVE FUNKTION</div>
+    <p>Jeden Abend: Zettel nehmen, <strong>3 konkrete Aufgaben</strong> für morgen aufschreiben. Nicht mehr. Nicht "Thesis schreiben" — sondern "Kapitel 2.1 Einleitung schreiben, 300 Wörter."</p>
+    <div class="sys-highlight">Der Zettel liegt am Morgen neben dem Kaffee. Keine Entscheidung nötig. Nur ausführen.</div>
+  </div>
+
+</div>
+
+<!-- ═══ TRACKER ═══ -->
+<div class="view" id="trk">
+  <div class="score-box">
+    <div class="score-num" id="trkScore">0/10</div>
+    <div class="score-lbl">Heute erledigt</div>
+  </div>
+  <div class="trk-grid" id="trkGrid"></div>
+  <div class="streak-box">
+    <h3>Diese Woche</h3>
+    <div class="streak-row" id="streakRow"></div>
+  </div>
+</div>
+
+<!-- ═══ REGELN ═══ -->
+<div class="view" id="rl">
+  <div class="rule">
+    <div class="rule-num">01</div>
+    <div class="rule-title">Handy nie als erstes am Morgen</div>
+    <div class="rule-desc">Fajr über separaten Wecker. Adhkar von Karte lesen. Handy erst nach erstem Thesis-Block. Das ist die wichtigste Regel.</div>
+    <div class="rule-action">→ Wecker kaufen, Adhkar ausdrucken</div>
+  </div>
+  <div class="rule">
+    <div class="rule-num">02</div>
+    <div class="rule-title">Thesis vor Gym — immer</div>
+    <div class="rule-desc">Gym ist Belohnung, nicht Aufwärmung. Gym morgens = mentaler Tagesabschluss. Gym nach Thesis = Dopamin-Boost für Nachmittag.</div>
+    <div class="rule-action">→ Thesis 09–12h, Gym nach Dhuhr</div>
+  </div>
+  <div class="rule">
+    <div class="rule-num">03</div>
+    <div class="rule-title">3 Aufgaben, nicht 10</div>
+    <div class="rule-desc">Jeden Abend 3 konkrete Aufgaben für morgen auf Zettel. Konkret = mit Ort, Zeit, Ergebnis. "Thesis" ist keine Aufgabe. "300 Wörter zu Kapitel 2 schreiben" ist eine Aufgabe.</div>
+    <div class="rule-action">→ Zettel neben Bett/Kaffee legen</div>
+  </div>
+  <div class="rule">
+    <div class="rule-num">04</div>
+    <div class="rule-title">5-4-3-2-1 beim Wecker</div>
+    <div class="rule-desc">Wenn Wecker klingelt: zählen und aufstehen. Kein Verhandeln, kein Denken. Der Körper steht auf bevor das Gehirn Ausreden findet.</div>
+    <div class="rule-action">→ Wecker auf andere Seite des Zimmers</div>
+  </div>
+  <div class="rule">
+    <div class="rule-num">05</div>
+    <div class="rule-title">Gebete sind Checkpoints, nicht Unterbrechungen</div>
+    <div class="rule-desc">Nach jedem Gebet: 2 min. Was kommt jetzt? Eine Aufgabe notieren. Die 5 Gebete sind die stärkste externe Struktur die du hast.</div>
+    <div class="rule-action">→ Nach Gebet: nächste 1 Aufgabe auf Zettel</div>
+  </div>
+  <div class="rule">
+    <div class="rule-num">06</div>
+    <div class="rule-title">Kein Urteilen — nur Beobachten</div>
+    <div class="rule-desc">Abends nicht: "Ich bin nutzlos." Sondern: "Was hat funktioniert? Was hat mich rausgerissen?" ADHS braucht Selbst-Beobachtung ohne Selbst-Bestrafung. Ein schlechter Tag ist Daten, kein Urteil.</div>
+    <div class="rule-action">→ 3 Sätze Abend-Review, täglich</div>
+  </div>
+  <div class="rule">
+    <div class="rule-num">07</div>
+    <div class="rule-title">Qailula ist kein Versagen</div>
+    <div class="rule-desc">Nach Fajr schlafen zu gehen ist Sunnah. Im Sommer ist es die einzig nachhaltige Lösung. Wer 8h Schlaf braucht und um 03:21 betet, muss danach schlafen. Das ist Biologie, keine Faulheit.</div>
+    <div class="rule-action">→ Fajr → schlafen bis 08:30, kein schlechtes Gewissen</div>
+  </div>
+</div>
+
+<!-- ═══ BOT NAV ═══ -->
+<div class="bot-nav">
+  <button class="nav-btn on" id="nb-tl" onclick="sw('tl',this,true)"><div class="nav-icon">📅</div><div class="nav-label">Plan</div></button>
+  <button class="nav-btn" id="nb-wu" onclick="sw('wu',this,true)"><div class="nav-icon">⏰</div><div class="nav-label">Aufstehen</div></button>
+  <button class="nav-btn" id="nb-sys" onclick="sw('sys',this,true)"><div class="nav-icon">🧠</div><div class="nav-label">System</div></button>
+  <button class="nav-btn" id="nb-trk" onclick="sw('trk',this,true)"><div class="nav-icon">✅</div><div class="nav-label">Tracker</div></button>
+  <button class="nav-btn" id="nb-rl" onclick="sw('rl',this,true)"><div class="nav-icon">📋</div><div class="nav-label">Regeln</div></button>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────
+const blocks = [
+  { time:"23:00", type:"sleep",   title:"Schlafen gehen",                dur:"~4h",  desc:"Adhkar Al-Nawm von Karte lesen. Handy im anderen Zimmer. Separater Wecker auf 03:15 gestellt. Wasser neben Wecker.", tags:["sunnah"] },
+  { time:"03:15", type:"salah",   title:"Fajr — Aufstehen & Gebet",      dur:"20min", desc:"5-4-3-2-1 LOS. Wecker ausschalten (nicht Handy). Adhkar aus laminierter Karte. Dann: sofort wieder schlafen gehen (Qailula).", tags:["salah","sunnah"] },
+  { time:"04:00", type:"sleep",   title:"Qailula — Weiterschlafen",       dur:"~4.5h", desc:"Das ist Sunnah und notwendig. Kein schlechtes Gewissen. Ziel: 08:30 Uhr aufwachen, ausgeruht.", tags:["sunnah","wissenschaft"] },
+  { time:"08:30", type:"morning", title:"⚡ Aufstehen — Morgen-Sequenz",   dur:"30min", desc:"1. Wasser trinken (Glas stand bereit) 2. Kaffee kochen (Belohnung) 3. Fenster auf, 2min Tageslicht 4. Zettel lesen: Was sind meine 3 Aufgaben? 5. Handy bleibt WEG.", tags:["adhs","start-ritual"] },
+  { time:"09:00", type:"thesis",  title:"🎯 Thesis-Block 1 — Deep Work",  dur:"90min", desc:"Bester Fokus-Zeitraum. 15min Arbeit / 5min Pause. Nur 1 Tab offen. NotebookLM + Word. Handy in anderem Zimmer. Kein Perfektionismus — nur schreiben.", tags:["deep-work","adhs"] },
+  { time:"10:30", type:"meal",    title:"Frühstück — Protein First",      dur:"20min", desc:"Skyr + Protein-Shake oder Eier. Kein Zucker-Frühstück (destabilisiert Blutzucker = schlechtere Konzentration). Kaffee #2.", tags:["nutrition","wissenschaft"] },
+  { time:"10:50", type:"thesis",  title:"📚 Thesis-Block 2 — Quellen",    dur:"60min", desc:"NotebookLM Pro, Zotero, Quellen lesen. Leichter als Block 1. 15/5 Pomodoro-Variante weiter.", tags:["thesis"] },
+  { time:"12:00", type:"admin",   title:"Puffer / Admin / Haushalt",      dur:"30min", desc:"Nachrichten beantworten, Wäsche, kurze Erledigungen. Alles auf einmal — nicht verteilt über den Tag.", tags:["struktur"] },
+  { time:"12:30", type:"reward",  title:"🎮 Freie Zeit — verdient",       dur:"30min", desc:"YouTube, Fenerbahçe-News, Podcast. Kein schlechtes Gewissen — du hast 3h gearbeitet. Das ist die Belohnung.", tags:["belohnung"] },
+  { time:"13:15", type:"salah",   title:"Dhuhr — Gebet + Checkpoint",     dur:"15min", desc:"Checkpoint: Wie lief der Morgen? Adhkar. Danach: Gym oder Spaziergang.", tags:["salah","checkpoint"] },
+  { time:"13:30", type:"gym",     title:"🏋️ Gym — Training (Belohnung)",  dur:"75min", desc:"Push A / Pull A / Push B / Pull B. 0–1 RIR, 3min Pausen. Gym ist jetzt Belohnung nach Arbeit — mentaler Tagesabschluss ERLAUBT danach.", tags:["gym","dopamin"] },
+  { time:"15:00", type:"meal",    title:"Post-Workout Mahlzeit",           dur:"20min", desc:"Hähnchen/Tofu/Lachs + Reis oder Brot. 50–60g Protein. Milbona Shake als Ergänzung.", tags:["nutrition","protein"] },
+  { time:"15:20", type:"arabic",  title:"🌙 Arabisch — Al-Arabiyyah",     dur:"40min", desc:"Al-Arabiyyah Bayna Yadayk — nächste Lektion. Lernblatt ausfüllen. AMAU Academy als Ergänzung. Leichter Fokus reicht hier.", tags:["arabisch","ilm"] },
+  { time:"16:00", type:"thesis",  title:"📖 Thesis-Block 3 — Review",     dur:"60min", desc:"Geschriebenes reviewen, Zitate einpflegen, Struktur prüfen. Leichter als Rohschreiben — gut für Nachmittag nach Gym.", tags:["thesis"] },
+  { time:"17:00", type:"admin",   title:"Puffer / Erledigungen",          dur:"30min", desc:"Falls Blocks übergelaufen sind. Oder: früher Feierabend wenn alles erledigt.", tags:["puffer"] },
+  { time:"17:35", type:"salah",   title:"Asr — Gebet + Checkpoint",       dur:"15min", desc:"Checkpoint: Was habe ich heute erreicht? Adhkar. Danach: Abend-Modus.", tags:["salah","checkpoint"] },
+  { time:"17:50", type:"meal",    title:"Abendessen",                     dur:"30min", desc:"Einfach: Tiefkühlgemüse + Protein. Kein aufwendiges Kochen nötig.", tags:["nutrition"] },
+  { time:"18:20", type:"reward",  title:"🌿 Freizeit / Moschee / Brüder", dur:"90min", desc:"Leart, Hassan, Suhail, Marc treffen. Spazieren. Echter Off-Modus. Kein Pflicht-Gefühl.", tags:["community","erholung"] },
+  { time:"19:50", type:"admin",   title:"3-Sätze Abend-Review",           dur:"5min",  desc:"Auf Zettel: 1. Was hat funktioniert? 2. Was hat mich rausgerissen? 3. Meine 3 Aufgaben für morgen. Kein Urteilen — nur Beobachten.", tags:["adhs","reflektion"] },
+  { time:"20:00", type:"arabic",  title:"Quran / Islamisches Lernen",     dur:"60min", desc:"Quran rezitieren, Tajwid, Aqeedah-Materialien. Ruhiger Abend-Modus.", tags:["quran","ilm"] },
+  { time:"21:24", type:"salah",   title:"Maghrib — Gebet",                dur:"15min", desc:"Adhkar Al-Masaa (Abend-Adhkar) von Karte lesen.", tags:["salah","adhkar"] },
+  { time:"21:40", type:"sleep",   title:"Schlaf-Vorbereitung",            dur:"20min", desc:"Bildschirme aus. Wudu. Morgen-Zettel schreiben (3 Aufgaben). Wasser neben Wecker stellen. Handy in anderes Zimmer.", tags:["struktur","schlaf"] },
+  { time:"22:50", type:"salah",   title:"Isha — Gebet",                   dur:"15min", desc:"Adhkar Al-Nawm. Schlafen. Alhamdulillah — Tag abgeschlossen.", tags:["salah","sunnah"] },
+];
+
+const trkItems = [
+  { id:"fajr",    icon:"🌅", label:"Fajr" },
+  { id:"dhuhr",   icon:"☀️", label:"Dhuhr" },
+  { id:"asr",     icon:"🌤", label:"Asr" },
+  { id:"maghrib", icon:"🌆", label:"Maghrib" },
+  { id:"isha",    icon:"🌙", label:"Isha" },
+  { id:"thesis",  icon:"📝", label:"Thesis" },
+  { id:"gym",     icon:"💪", label:"Gym" },
+  { id:"arabic",  icon:"📖", label:"Arabisch" },
+  { id:"nophone", icon:"📵", label:"Kein Handy früh" },
+  { id:"3tasks",  icon:"🎯", label:"3 Aufgaben" },
+];
+
+// ── STATE ──────────────────────────────────
+let done = JSON.parse(localStorage.getItem('done_v2') || '[]');
+let trk  = JSON.parse(localStorage.getItem('trk_v2')  || '[]');
+let streak = JSON.parse(localStorage.getItem('streak_v2') || '{}');
+
+// ── INIT ──────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  updateDate(); renderTL(); renderTrk(); renderStreak(); updateProg();
+});
+
+function updateDate() {
+  const d = new Date();
+  const days = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+  const months = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+  document.getElementById('dateD').textContent = `${days[d.getDay()]}, ${d.getDate()}. ${months[d.getMonth()]}`;
+}
+
+// ── TIMELINE ──────────────────────────────
+function renderTL() {
+  const c = document.getElementById('tlBlocks'); c.innerHTML = '';
+  blocks.forEach((b,i) => {
+    const isDone = done.includes(i);
+    const tagHtml = (b.tags||[]).map(t => {
+      const islamTags = ['salah','sunnah','quran','ilm','adhkar','checkpoint'];
+      const cls = islamTags.includes(t) ? 'islam-tag' : 'sci-tag';
+      return `<span class="${cls}">${t}</span>`;
+    }).join('');
+    c.innerHTML += `
+      <div class="blk t-${b.type}">
+        <div class="blk-time">${b.time}</div>
+        <div class="blk-dot"></div>
+        <div class="blk-card ${isDone?'done':''}">
+          <div class="blk-hdr">
+            <div class="blk-title">${b.title}${isDone?' ✓':''}</div>
+            <div class="blk-dur">${b.dur}</div>
+          </div>
+          <div class="blk-desc">${b.desc}</div>
+          ${tagHtml ? `<div style="margin-top:6px">${tagHtml}</div>` : ''}
+          <button class="done-btn ${isDone?'on':''}" onclick="toggleDone(${i})">${isDone?'✓ Erledigt':'Als erledigt markieren'}</button>
+        </div>
+      </div>`;
+  });
+}
+
+function toggleDone(i) {
+  done = done.includes(i) ? done.filter(x=>x!==i) : [...done,i];
+  localStorage.setItem('done_v2', JSON.stringify(done));
+  renderTL(); updateProg();
+}
+
+function updateProg() {
+  const p = Math.round(done.length/blocks.length*100);
+  document.getElementById('pPct').textContent = p+'%';
+  document.getElementById('pFill').style.width = p+'%';
+}
+
+// ── TRACKER ──────────────────────────────
+function renderTrk() {
+  const g = document.getElementById('trkGrid'); g.innerHTML = '';
+  trkItems.forEach(item => {
+    const on = trk.includes(item.id);
+    g.innerHTML += `<div class="trk-item ${on?'on':''}" onclick="toggleTrk('${item.id}')">
+      <div class="trk-icon">${item.icon}</div>
+      <div class="trk-label">${item.label}</div>
+    </div>`;
+  });
+  document.getElementById('trkScore').textContent = `${trk.length}/${trkItems.length}`;
+}
+
+function toggleTrk(id) {
+  trk = trk.includes(id) ? trk.filter(x=>x!==id) : [...trk,id];
+  localStorage.setItem('trk_v2', JSON.stringify(trk));
+  if (!streak[new Date().toDateString()]) streak[new Date().toDateString()] = 0;
+  streak[new Date().toDateString()] = trk.length;
+  localStorage.setItem('streak_v2', JSON.stringify(streak));
+  renderTrk(); renderStreak();
+}
+
+// ── STREAK ──────────────────────────────
+function renderStreak() {
+  const days = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+  const c = document.getElementById('streakRow'); c.innerHTML = '';
+  for (let i=6; i>=0; i--) {
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const key = d.toDateString();
+    const score = streak[key] || 0;
+    const good = score >= 5;
+    const isToday = i===0;
+    c.innerHTML += `<div class="s-dot ${good?'good':''} ${isToday?'today':''}">
+      <div class="s-day">${days[d.getDay()]}</div>
+      <div class="s-check">${good?'✓':score>0?score:''}</div>
+    </div>`;
+  }
+}
+
+// ── NAVIGATION ──────────────────────────
+function sw(id, btn, isNav=false) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  if (isNav) {
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('on'));
+  } else {
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('on'));
+    const nb = document.getElementById('nb-'+id);
+    if(nb) nb.classList.add('on');
+  }
+}
+</script>
+</body>
+</html>
