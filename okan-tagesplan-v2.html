@@ -545,7 +545,7 @@ window.addEventListener('DOMContentLoaded', () => {
 // ── PRAYER TIMES — AlAdhan API (Moschee der Zukunft, München Moosfeld) ────
 // Koordinaten: 48.1127° N, 11.6394° E  |  Methode 3 = Muslim World League
 async function loadPrayerTimes() {
-  const CACHE_KEY = 'prayer_cache_v3';
+  const CACHE_KEY = 'prayer_cache_v4';
   const today = new Date().toISOString().slice(0,10);
 
   // Use cache if same day
@@ -559,7 +559,7 @@ async function loadPrayerTimes() {
 
   try {
     const d = new Date();
-    const url = `https://api.aladhan.com/v1/timings/${Math.floor(d/1000)}?latitude=48.1127&longitude=11.6394&method=2&tune=8,0,2,0,0,1,0,0,0`;
+    const url = `https://api.aladhan.com/v1/timings/${Math.floor(d/1000)}?latitude=48.1127&longitude=11.6394&method=2&tune=0,13,-8,5,4,6,0,0,0`;
     const res = await fetch(url);
     const json = await res.json();
     if (json.code === 200) {
